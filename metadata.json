@@ -1,0 +1,8 @@
+{
+  "name": "Remix Ink2Web Express",
+  "description": "Core Features\n- WCAG 2.2 AA compliant: Converts handwritten or printed notes into structurally valid, semantically rich web documents.\n- Smart figure handling: Automatically crops figures and generates AI-powered descriptions and alt text. These can all be edited before downloading the HTML.\n- Precision math rendering: Transforms complex equations into screen-reader-friendly LaTeX.\n- Visual refinement: Includes basic touch-up tools for figures and graphs.\n- Ad digitandum paratus!",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
