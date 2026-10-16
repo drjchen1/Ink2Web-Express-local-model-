@@ -41,8 +41,10 @@ export const pdfToImageData = async (file: File, optimize: boolean = false, targ
     
     const pageIndices = targetPageIndices || Array.from({ length: pdf.numPages }, (_, i) => i + 1);
     
-    const data = await Promise.all(pageIndices.map(async (i) => {
-      const page = await pdf.getPage(i);
+    // Render pages sequentially to avoid allocating multiple large DOM canvases concurrently in RAM
+    const data: PdfImageData[] = [];
+    for (const pageNum of pageIndices) {
+      const page = await pdf.getPage(pageNum);
       const viewport = page.getViewport({ scale }); 
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -55,14 +57,16 @@ export const pdfToImageData = async (file: File, optimize: boolean = false, targ
       await page.render({ canvasContext: context, viewport }).promise;
       
       const base64 = canvas.toDataURL('image/jpeg', quality).split(',')[1];
-      return { 
+      data.push({ 
         base64, 
         canvas, 
         width: viewport.width, 
         height: viewport.height,
         orientation: (viewport.width > viewport.height ? 'landscape' : 'portrait') as 'landscape' | 'portrait'
-      };
-    }));
+      });
+      // Release PDF page resources
+      page.cleanup();
+    }
 
     return data;
   }
