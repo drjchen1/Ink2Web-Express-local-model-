@@ -699,12 +699,6 @@ export const generateHtmlDocument = (
       <section class="document-page" id="page-sheet-${r.pageNumber}" aria-label="Page ${r.pageNumber} of ${cleanResults.length}">
         <div class="page-header-bar" aria-hidden="true">
           <span class="page-badge">Page ${r.pageNumber} of ${cleanResults.length}</span>
-          ${i === 0 ? `
-            <div class="document-badge" role="status">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>WCAG 2.2 AA</span>
-            </div>
-          ` : ''}
         </div>
 
         ${i === 0 ? `

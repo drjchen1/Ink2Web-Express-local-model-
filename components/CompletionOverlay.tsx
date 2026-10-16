@@ -81,10 +81,6 @@ const CompletionOverlay: React.FC<CompletionOverlayProps> = ({
             <Server size={13} className="text-indigo-600" />
             Local Ollama
           </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            WCAG 2.2 AA
-          </span>
         </div>
 
         {/* Dismiss Button */}

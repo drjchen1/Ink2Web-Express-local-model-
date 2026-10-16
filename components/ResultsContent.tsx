@@ -42,10 +42,6 @@ export const ResultsContent: React.FC<ResultsContentProps> = ({
                     <span className="px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-700 font-bold uppercase tracking-wider text-[11px]">
                       Page {r.pageNumber} of {results.length}
                     </span>
-                    <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      WCAG 2.2 AA
-                    </span>
                   </div>
                   
                   <div dangerouslySetInnerHTML={{ __html: r.html }} />
@@ -61,10 +57,6 @@ export const ResultsContent: React.FC<ResultsContentProps> = ({
                 <div className="page-top-bar flex items-center justify-between pb-3.5 mb-6 border-b border-zinc-100 text-xs text-zinc-500 font-semibold" aria-hidden="true">
                   <span className="px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-700 font-bold uppercase tracking-wider text-[11px]">
                     Page {results[activeTab]?.pageNumber || 1} of {results.length}
-                  </span>
-                    <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      WCAG 2.2 AA
                   </span>
                 </div>
                 <div dangerouslySetInnerHTML={{ __html: results[activeTab]?.html || '' }} />
