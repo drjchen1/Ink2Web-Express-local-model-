@@ -17,7 +17,6 @@ interface ResultsViewProps {
   onReset: () => void;
   onUpdateHtml: (pageIndex: number, html: string) => void;
   onUpdateFigureImage?: (pageIndex: number, figureId: string, newSrc: string) => void;
-  onReprocessPage?: (pageIndex: number) => void;
 }
 
 const ResultsView: React.FC<ResultsViewProps> = ({
@@ -31,8 +30,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   onDownloadHtml,
   onReset,
   onUpdateHtml,
-  onUpdateFigureImage,
-  onReprocessPage
+  onUpdateFigureImage
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -180,7 +178,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           activeTab={activeTab}
           onUpdateHtml={onUpdateHtml}
           onOpenCropModal={handleOpenCropModal}
-          onReprocessPage={onReprocessPage}
           contentRef={contentRef}
         />
       </div>
