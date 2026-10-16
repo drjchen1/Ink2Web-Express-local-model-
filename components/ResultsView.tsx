@@ -112,19 +112,18 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       }
     };
 
-    // Staggered execution ensures MathJax runs after DOM injection and layout settle
-    const timer1 = setTimeout(runTypeset, 40);
-    const timer2 = setTimeout(runTypeset, 200);
+    // Single debounced execution: wait for React DOM render to settle, then typeset scoped element
+    const timer = setTimeout(runTypeset, 60);
 
     // Re-typeset math if a user opens a <details> element
     const element = contentRef.current;
     const detailsList = element ? element.querySelectorAll('details') : [];
     const handleDetailsToggle = (e: Event) => {
       const detailsEl = e.currentTarget as HTMLDetailsElement;
-      if (detailsEl && detailsEl.open && window.MathJax) {
+      if (detailsEl && detailsEl.open && window.MathJax && window.MathJax.typesetPromise) {
         try {
           window.MathJax.typesetClear([detailsEl]);
-          window.MathJax.typesetPromise([detailsEl]);
+          window.MathJax.typesetPromise([detailsEl]).catch(() => {});
         } catch (_) {}
       }
     };
@@ -134,8 +133,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
     return () => {
       isCancelled = true;
-      clearTimeout(timer1);
-      clearTimeout(timer2);
+      clearTimeout(timer);
       detailsList.forEach(details => {
         details.removeEventListener('toggle', handleDetailsToggle);
       });
