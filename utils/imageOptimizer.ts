@@ -1,16 +1,18 @@
 /**
- * Optimizes an image for Gemini API by resizing it to tile-aligned dimensions (1536x1536 max)
- * and applying an adaptive canvas contrast & brightness filter.
- * This whitens yellow/gray paper, darkens faint pencil/ink, and maximizes OCR fidelity for Flash-Lite.
+ * Optimizes an image for the local vision model (e.g. Qwen 2.5-VL 3B) by resizing it 
+ * to a balanced 1024x1024 max bounding box and applying an adaptive contrast/brightness filter.
+ * 
+ * 1024x1024 keeps handwritten math and text sharp while reducing the model's visual token count 
+ * by ~45% compared to 1400px, dramatically lowering KV cache memory usage and accelerating inference.
  */
-export const optimizeImageForGemini = async (base64: string, maxWidth = 1400, maxHeight = 1400): Promise<string> => {
+export const optimizeImageForGemini = async (base64: string, maxWidth = 1024, maxHeight = 1024): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       let width = img.width;
       let height = img.height;
 
-      // Calculate new dimensions (fast, high-DPI scaling)
+      // Calculate new dimensions (preserving aspect ratio)
       if (width > maxWidth) {
         height = Math.round(height * (maxWidth / width));
         width = maxWidth;
@@ -39,8 +41,8 @@ export const optimizeImageForGemini = async (base64: string, maxWidth = 1400, ma
 
       ctx.drawImage(img, 0, 0, width, height);
       
-      // Use JPEG with quality 0.85 for rapid encoding and lightweight payload
-      const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      // Use JPEG with quality 0.82 for sharp text with minimal payload and memory footprint
+      const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.82);
       resolve(optimizedBase64.split(',')[1] || optimizedBase64);
     };
     img.onerror = (err) => reject(err);
