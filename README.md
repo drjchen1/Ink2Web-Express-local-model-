@@ -121,8 +121,8 @@ ollama run qwen2.5vl:3b
 
 1. **Clone or Download the Repository:**
    ```bash
-   git clone https://github.com/your-username/remix-ink2web-express.git
-   cd remix-ink2web-express
+   git clone https://github.com/drjchen1/Ink2Web-Express-local-model-.git
+   cd Ink2Web-Express-local-model-
    ```
 
 2. **Install Project Dependencies:**
