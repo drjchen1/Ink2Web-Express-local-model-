@@ -252,7 +252,8 @@ export const useDocumentProcessing = (
               height: pageData[i].height,
               audit,
               figures: figureResults,
-              semanticTags
+              semanticTags,
+              pageImage: pageData[i].canvas?.toDataURL('image/jpeg', 0.9) || `data:image/jpeg;base64,${pageData[i].base64}`
             };
 
             pageProgressScores[i] = 1.0;
@@ -471,7 +472,8 @@ export const useDocumentProcessing = (
           height: pageData[0].height,
           audit,
           figures: figureResults,
-          semanticTags
+          semanticTags,
+          pageImage: pageData[0].canvas?.toDataURL('image/jpeg', 0.9) || `data:image/jpeg;base64,${pageData[0].base64}`
         };
 
         if (existingIndex >= 0) {

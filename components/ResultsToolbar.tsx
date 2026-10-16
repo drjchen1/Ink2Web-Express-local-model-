@@ -77,7 +77,7 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
         {/* Accessibility Tag */}
         <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/60 ml-1">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          WCAG 2.2 AA
+          Accessible HTML
         </span>
       </div>
 

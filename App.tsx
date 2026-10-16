@@ -21,6 +21,7 @@ const App: React.FC = () => {
     originalFiles,
     handleFileUpload,
     updatePageHtml,
+    updateFigureImage,
     setModel,
     reset
   } = useDigitization(incrementUsage);
@@ -158,6 +159,7 @@ const App: React.FC = () => {
             onDownloadHtml={handleDownloadHtml}
             onReset={handleReset}
             onUpdateHtml={updatePageHtml}
+            onUpdateFigureImage={updateFigureImage}
           />
         )}
       </main>

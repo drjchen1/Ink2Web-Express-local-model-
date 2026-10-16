@@ -24,5 +24,39 @@ export const useDocumentEditor = (
     });
   }, [setState]);
 
-  return { updatePageHtml };
+  const updateFigureImage = useCallback((pageIndex: number, figureId: string, newSrc: string) => {
+    setState(prev => {
+      const newResults = [...prev.results];
+      const pageResult = newResults[pageIndex];
+      if (pageResult) {
+        // Update figures array
+        const updatedFigures = (pageResult.figures || []).map(fig => {
+          if (fig.id === figureId) {
+            return { ...fig, currentSrc: newSrc };
+          }
+          return fig;
+        });
+
+        // Update HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(pageResult.html, 'text/html');
+        let img = doc.querySelector(`img[data-figure-id="${figureId}"]`) || doc.querySelector(`img[id="${figureId}"]`);
+        if (!img && (pageResult.figures || []).length === 1) {
+          img = doc.querySelector('figure img, img');
+        }
+        if (img) {
+          img.setAttribute('src', newSrc);
+        }
+
+        newResults[pageIndex] = {
+          ...pageResult,
+          html: doc.body.innerHTML,
+          figures: updatedFigures
+        };
+      }
+      return { ...prev, results: newResults };
+    });
+  }, [setState]);
+
+  return { updatePageHtml, updateFigureImage };
 };

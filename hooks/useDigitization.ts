@@ -27,7 +27,7 @@ export const useDigitization = (onApiCall?: () => void) => {
     onApiCall
   );
 
-  const { updatePageHtml } = useDocumentEditor(setState);
+  const { updatePageHtml, updateFigureImage } = useDocumentEditor(setState);
 
   return {
     state,
@@ -36,6 +36,7 @@ export const useDigitization = (onApiCall?: () => void) => {
     handleFileUpload,
     reprocessPage,
     updatePageHtml,
+    updateFigureImage,
     setModel,
     setThinkingLevel,
     setMathAnnotationStyle,

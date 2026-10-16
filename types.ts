@@ -81,6 +81,7 @@ export interface ConversionResult {
   audit?: AccessibilityAudit;
   figures: FigureResult[];
   semanticTags?: SemanticAccessibilityTags;
+  pageImage?: string; // High-resolution data URL of the original rendered page for manual visual cropping
 }
 
 export interface AppState {

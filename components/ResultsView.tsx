@@ -3,6 +3,7 @@ import { ConversionResult, LayoutMode } from '../types';
 import { ResultsToolbar } from './ResultsToolbar';
 import { ResultsContent } from './ResultsContent';
 import { generateHtmlDocument } from '../utils/exportHtml';
+import { VisualCropModal } from './VisualCropModal';
 
 interface ResultsViewProps {
   results: ConversionResult[];
@@ -15,6 +16,7 @@ interface ResultsViewProps {
   onDownloadHtml: () => void;
   onReset: () => void;
   onUpdateHtml: (pageIndex: number, html: string) => void;
+  onUpdateFigureImage?: (pageIndex: number, figureId: string, newSrc: string) => void;
 }
 
 const ResultsView: React.FC<ResultsViewProps> = ({
@@ -27,10 +29,57 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   setLayoutMode,
   onDownloadHtml,
   onReset,
-  onUpdateHtml
+  onUpdateHtml,
+  onUpdateFigureImage
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Crop Modal state
+  const [cropModalData, setCropModalData] = useState<{
+    pageIndex: number;
+    figureId?: string;
+    pageImage: string;
+    alt?: string;
+    caption?: string;
+  } | null>(null);
+
+  const handleOpenCropModal = (
+    pageIndex: number, 
+    figureId?: string, 
+    alt?: string, 
+    caption?: string
+  ) => {
+    const pageImage = results[pageIndex]?.pageImage;
+    if (!pageImage) return;
+    setCropModalData({
+      pageIndex,
+      figureId: figureId || results[pageIndex]?.figures?.[0]?.id || 'fig_1',
+      pageImage,
+      alt,
+      caption
+    });
+  };
+
+  const handleSaveCrop = (croppedDataUrl: string, figureId?: string) => {
+    if (!cropModalData) return;
+    const targetId = figureId || cropModalData.figureId || 'fig_1';
+    
+    if (onUpdateFigureImage) {
+      onUpdateFigureImage(cropModalData.pageIndex, targetId, croppedDataUrl);
+    } else {
+      // Fallback: update HTML directly using onUpdateHtml
+      const currentHtml = results[cropModalData.pageIndex]?.html || '';
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(currentHtml, 'text/html');
+      let img = doc.querySelector(`img[data-figure-id="${targetId}"]`) || doc.querySelector(`img[id="${targetId}"]`) || doc.querySelector('figure img, img');
+      if (img) {
+        img.setAttribute('src', croppedDataUrl);
+        onUpdateHtml(cropModalData.pageIndex, doc.body.innerHTML);
+      }
+    }
+    setCropModalData(null);
+  };
 
   // Trigger MathJax re-typesetting whenever results, active page, or view mode changes
   useEffect(() => {
@@ -130,11 +179,25 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           results={results}
           activeTab={activeTab}
           onUpdateHtml={onUpdateHtml}
+          onOpenCropModal={handleOpenCropModal}
           contentRef={contentRef}
         />
       </div>
+
+      {/* Visual Crop Modal for Instant Visual Adjustments */}
+      {cropModalData && (
+        <VisualCropModal
+          pageImage={cropModalData.pageImage}
+          figureId={cropModalData.figureId}
+          initialAlt={cropModalData.alt}
+          initialCaption={cropModalData.caption}
+          onSaveCrop={handleSaveCrop}
+          onClose={() => setCropModalData(null)}
+        />
+      )}
     </div>
   );
 };
 
 export default ResultsView;
+

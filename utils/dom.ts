@@ -423,6 +423,32 @@ export const replaceFigureInHtml = (html: string, figureId: string, figureHtml: 
 };
 
 /**
+ * Updates the src of a specific figure or image in the HTML by figureId or index.
+ */
+export const updateFigureImageInHtml = (html: string, figureId: string, newSrc: string): string => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  let img = doc.querySelector(`img[data-figure-id="${figureId}"]`) || doc.querySelector(`img[id="${figureId}"]`);
+  if (!img) {
+    // If not found by exact ID, fallback to first image if there is only 1 image
+    const allImgs = doc.querySelectorAll('figure img, img');
+    if (allImgs.length === 1) {
+      img = allImgs[0];
+    }
+  }
+
+  if (img) {
+    img.setAttribute('src', newSrc);
+    return doc.body.innerHTML;
+  }
+
+  // Fallback string replacement if DOM query missed it
+  return html.replace(new RegExp(`(<img[^>]*data-figure-id=["']${figureId}["'][^>]*src=["'])[^"']*`, 'i'), `$1${newSrc}`);
+};
+
+
+/**
  * Strips leading "Figure:", "Fig.", "Diagram:", "Illustration:" prefixes.
  */
 export const stripFigurePrefix = (text: string): string => {
