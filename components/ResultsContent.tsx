@@ -5,7 +5,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/themes/prism-tomorrow.css';
 
-import { Crop } from 'lucide-react';
+import { Crop, RefreshCw } from 'lucide-react';
 
 interface ResultsContentProps {
   viewMode: 'preview' | 'source';
@@ -14,6 +14,7 @@ interface ResultsContentProps {
   activeTab: number;
   onUpdateHtml: (pageIndex: number, html: string) => void;
   onOpenCropModal?: (pageIndex: number, figureId?: string, currentAlt?: string, currentCaption?: string) => void;
+  onReprocessPage?: (pageIndex: number) => void;
   contentRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -24,6 +25,7 @@ export const ResultsContent: React.FC<ResultsContentProps> = ({
   activeTab,
   onUpdateHtml,
   onOpenCropModal,
+  onReprocessPage,
   contentRef
 }) => {
   return (
@@ -46,17 +48,30 @@ export const ResultsContent: React.FC<ResultsContentProps> = ({
                     <span className="px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-700 font-bold uppercase tracking-wider text-[11px]">
                       Page {r.pageNumber} of {results.length}
                     </span>
-                    {r.pageImage && onOpenCropModal && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenCropModal(i, r.figures?.[0]?.id, r.figures?.[0]?.alt, r.figures?.[0]?.caption)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-indigo-50 border border-zinc-200 hover:border-indigo-200 transition-all cursor-pointer"
-                        title="Adjust or re-crop diagrams from original page"
-                      >
-                        <Crop size={13} className="text-indigo-500" />
-                        <span>Adjust Diagram Crop</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {onReprocessPage && (
+                        <button
+                          type="button"
+                          onClick={() => onReprocessPage(i)}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200 transition-all cursor-pointer"
+                          title={`Re-convert Page ${r.pageNumber} with local Ollama`}
+                        >
+                          <RefreshCw size={12} className="text-zinc-500" />
+                          <span>Re-convert Page</span>
+                        </button>
+                      )}
+                      {r.pageImage && onOpenCropModal && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenCropModal(i, r.figures?.[0]?.id, r.figures?.[0]?.alt, r.figures?.[0]?.caption)}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-indigo-50 border border-zinc-200 hover:border-indigo-200 transition-all cursor-pointer"
+                          title="Adjust or re-crop diagrams from original page"
+                        >
+                          <Crop size={13} className="text-indigo-500" />
+                          <span>Adjust Diagram Crop</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   <div dangerouslySetInnerHTML={{ __html: r.html }} />
@@ -73,22 +88,35 @@ export const ResultsContent: React.FC<ResultsContentProps> = ({
                   <span className="px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-700 font-bold uppercase tracking-wider text-[11px]">
                     Page {results[activeTab]?.pageNumber || 1} of {results.length}
                   </span>
-                  {results[activeTab]?.pageImage && onOpenCropModal && (
-                    <button
-                      type="button"
-                      onClick={() => onOpenCropModal(
-                        activeTab, 
-                        results[activeTab]?.figures?.[0]?.id, 
-                        results[activeTab]?.figures?.[0]?.alt, 
-                        results[activeTab]?.figures?.[0]?.caption
-                      )}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-indigo-50 border border-zinc-200 hover:border-indigo-200 transition-all cursor-pointer"
-                      title="Adjust or re-crop diagrams from original page"
-                    >
-                      <Crop size={13} className="text-indigo-500" />
-                      <span>Adjust Diagram Crop</span>
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {onReprocessPage && (
+                      <button
+                        type="button"
+                        onClick={() => onReprocessPage(activeTab)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200 transition-all cursor-pointer"
+                        title={`Re-convert Page ${results[activeTab]?.pageNumber || 1} with local Ollama`}
+                      >
+                        <RefreshCw size={12} className="text-zinc-500" />
+                        <span>Re-convert Page</span>
+                      </button>
+                    )}
+                    {results[activeTab]?.pageImage && onOpenCropModal && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenCropModal(
+                          activeTab, 
+                          results[activeTab]?.figures?.[0]?.id, 
+                          results[activeTab]?.figures?.[0]?.alt, 
+                          results[activeTab]?.figures?.[0]?.caption
+                        )}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-600 hover:text-indigo-600 hover:bg-indigo-50 border border-zinc-200 hover:border-indigo-200 transition-all cursor-pointer"
+                        title="Adjust or re-crop diagrams from original page"
+                      >
+                        <Crop size={13} className="text-indigo-500" />
+                        <span>Adjust Diagram Crop</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div dangerouslySetInnerHTML={{ __html: results[activeTab]?.html || '' }} />
               </article>

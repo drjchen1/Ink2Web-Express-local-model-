@@ -20,6 +20,7 @@ const App: React.FC = () => {
     state,
     originalFiles,
     handleFileUpload,
+    reprocessPage,
     updatePageHtml,
     updateFigureImage,
     setModel,
@@ -159,6 +160,7 @@ const App: React.FC = () => {
             onReset={handleReset}
             onUpdateHtml={updatePageHtml}
             onUpdateFigureImage={updateFigureImage}
+            onReprocessPage={reprocessPage}
           />
         )}
       </main>

@@ -243,7 +243,8 @@ async function locateFigureBoxesWithOllama(
           messages: [{ role: 'user', content: prompt, images: [imageBase64] }],
           format: 'json',
           stream: false,
-          options: { temperature: 0.1, num_predict: 256 }
+          keep_alive: '10m',
+          options: { temperature: 0.1, top_p: 0.9, repeat_penalty: 1.15, num_predict: 256 }
         })
       });
       if (!response.ok) continue;
@@ -316,8 +317,11 @@ export async function transcribePageWithOllama(
       }
     ],
     stream: false,
+    keep_alive: '10m', // Keep model in memory so it doesn't unload/reload, but context is fresh per request
     options: {
       temperature: 0.1,
+      top_p: 0.9,
+      repeat_penalty: 1.15,
       num_predict: 2048
     }
   };
