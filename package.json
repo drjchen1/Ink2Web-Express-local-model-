@@ -10,11 +10,9 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^1.40.0",
     "@tailwindcss/vite": "^4.2.1",
     "@types/js-beautify": "^1.14.3",
     "@vitejs/plugin-react": "^5.0.0",
-    "framer-motion": "^12.34.3",
     "heic2any": "^0.0.4",
     "js-beautify": "^2.0.3",
     "lucide-react": "^0.575.0",
