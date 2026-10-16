@@ -7,39 +7,7 @@ import { cropImage } from '../utils/image';
 import { cleanAltText, fixHeadingOrder, replaceFigureInHtml, formatMathInText, formatFigureTitle, formatFigureCaption, buildFigureCardHtml } from '../utils/dom';
 import { optimizeImageForGemini } from '../utils/imageOptimizer';
 
-const DYNAMIC_REASONING_STEPS = [
-  "Transcribing handwritten notes & math...",
-  "Formatting accessible LaTeX equations...",
-  "Structuring semantic headings & tables...",
-  "Formatting accessible figures & descriptions...",
-  "Generating WCAG 2.2 AA compliant HTML..."
-];
 
-const startReasoningStepInterval = (
-  pageLabel: string,
-  maxSimulatedProgress: number,
-  setState: React.Dispatch<React.SetStateAction<AppState>>
-) => {
-  let stepIndex = 0;
-  
-  const intervalId = setInterval(() => {
-    stepIndex++;
-    const nextMsg = DYNAMIC_REASONING_STEPS[stepIndex % DYNAMIC_REASONING_STEPS.length];
-    
-    setState(prev => {
-      const nextProgress = prev.progress < maxSimulatedProgress 
-        ? Math.min(maxSimulatedProgress, prev.progress + 1) 
-        : prev.progress;
-      return {
-        ...prev,
-        progress: Math.max(prev.progress, nextProgress),
-        statusMessage: `${pageLabel}: ${nextMsg}`
-      };
-    });
-  }, 2200);
-
-  return () => clearInterval(intervalId);
-};
 
 export const useDocumentProcessing = (
   state: AppState,
@@ -115,17 +83,10 @@ export const useDocumentProcessing = (
             ? `Page ${batchIndices[0] + 1}` 
             : `Pages ${batchIndices.map(i => i + 1).join(', ')}`;
 
-          setState(prev => {
-            const current = prev.currentProcessingImages || [];
-            const newImages = batchIndices.map(idx => pageData[idx].base64);
-            return {
-              ...prev,
-              statusMessage: batchIndices.length === 1
-                ? `Optimizing image for ${pageLabel}...`
-                : `Optimizing images for ${pageLabel}...`,
-              currentProcessingImages: [...current, ...newImages]
-            };
-          });
+          setState(prev => ({
+            ...prev,
+            statusMessage: totalPages > 1 ? `Processing ${pageLabel} of ${totalPages}...` : 'Processing document...'
+          }));
 
           const batchImages = await Promise.all(batchIndices.map(async idx => {
             const optimized = await optimizeImageForGemini(pageData[idx].base64);
@@ -142,49 +103,22 @@ export const useDocumentProcessing = (
 
           setState(prev => ({
             ...prev, 
-            progress: Math.max(prev.progress, progressAfterOpt),
-            statusMessage: `${pageLabel}: ${DYNAMIC_REASONING_STEPS[0]}`
+            progress: Math.max(prev.progress, progressAfterOpt)
           }));
 
-          // Allow the progress bar to smoothly ease forward while waiting for Gemini response
-          const hypotheticalScoresSum = pageProgressScores.reduce((sum, score) => sum + score, 0) + (batchIndices.length * 0.6);
-          const maxSimulatedForBatch = Math.min(95, Math.round(10 + (hypotheticalScoresSum / totalPages) * 88) - 2);
-          const stopReasoningTicker = startReasoningStepInterval(
-            pageLabel,
-            Math.max(progressAfterOpt, maxSimulatedForBatch),
-            setState
+          const batchResponses = await convertBatchToHtml(
+            batchImages, 
+            model, 
+            thinkingLevel, 
+            (fallbackModel) => {
+              setState(prev => ({ ...prev, actualModelUsed: fallbackModel }));
+            }, 
+            mathAnnotationStyle
           );
-
-          let batchResponses;
-          try {
-            batchResponses = await convertBatchToHtml(
-              batchImages, 
-              model, 
-              thinkingLevel, 
-              (fallbackModel) => {
-                setState(prev => ({ ...prev, actualModelUsed: fallbackModel }));
-              }, 
-              mathAnnotationStyle,
-              (charsCount) => {
-                setState(prev => ({
-                  ...prev,
-                  statusMessage: `${pageLabel}: Streaming transcription (${charsCount.toLocaleString()} chars received)...`
-                }));
-              }
-            );
-          } finally {
-            stopReasoningTicker();
-          }
 
           onApiCall?.();
 
           // Round 2: Inspection and Polish Pass
-          setState(prev => ({ 
-            ...prev, 
-            statusMessage: `${pageLabel}: Polishing LaTeX & accessible HTML structure...`,
-            actualModelUsed: batchResponses.actualModelUsed
-          }));
-
           // Run Round 2 inspection on each page's transcribed HTML
           await Promise.all(
             batchResponses.pages.map(async (pageResp) => {
@@ -206,8 +140,7 @@ export const useDocumentProcessing = (
 
           setState(prev => ({ 
             ...prev, 
-            progress: Math.max(prev.progress, progressAfterAI),
-            statusMessage: `Processing mathematical figures for ${pageLabel}...`
+            progress: Math.max(prev.progress, progressAfterAI)
           }));
 
           for (let k = 0; k < batchIndices.length; k++) {
@@ -260,16 +193,11 @@ export const useDocumentProcessing = (
             completedPages++;
             const progressAfterFigures = calculateOverallProgress();
 
-            setState(prev => {
-              const current = prev.currentProcessingImages || [];
-              const imgToRemove = pageData[i].base64;
-              return {
-                ...prev,
-                progress: Math.max(prev.progress, progressAfterFigures),
-                statusMessage: `Completed page ${completedPages} of ${totalPages}...`,
-                currentProcessingImages: current.filter(img => img !== imgToRemove)
-              };
-            });
+            setState(prev => ({
+              ...prev,
+              progress: Math.max(prev.progress, progressAfterFigures),
+              statusMessage: totalPages > 1 ? `Completed page ${completedPages} of ${totalPages}...` : 'Finishing conversion...'
+            }));
           }
         } catch (err: any) {
           console.error(`Error processing batch ${batchIndices}:`, err);
@@ -372,36 +300,20 @@ export const useDocumentProcessing = (
       setState(prev => ({
         ...prev,
         progress: Math.max(prev.progress, 50),
-        statusMessage: `${pageLabel}: ${DYNAMIC_REASONING_STEPS[0]}`
+        statusMessage: `Reprocessing ${pageLabel}...`
       }));
 
       const batchImages = [{ base64: optimizedImage, pageNumber: pageIndex + 1 }];
-      const stopReasoningTicker = startReasoningStepInterval(
-        pageLabel,
-        78,
-        setState
-      );
 
-      let batchResponses;
-      try {
-        batchResponses = await convertBatchToHtml(
-          batchImages, 
-          model, 
-          thinkingLevel, 
-          (fallbackModel) => {
-            setState(prev => ({ ...prev, actualModelUsed: fallbackModel }));
-          }, 
-          mathAnnotationStyle,
-          (charsCount) => {
-            setState(prev => ({
-              ...prev,
-              statusMessage: `${pageLabel}: Streaming transcription (${charsCount.toLocaleString()} chars received)...`
-            }));
-          }
-        );
-      } finally {
-        stopReasoningTicker();
-      }
+      const batchResponses = await convertBatchToHtml(
+        batchImages, 
+        model, 
+        thinkingLevel, 
+        (fallbackModel) => {
+          setState(prev => ({ ...prev, actualModelUsed: fallbackModel }));
+        }, 
+        mathAnnotationStyle
+      );
       
       onApiCall?.();
 
@@ -410,13 +322,6 @@ export const useDocumentProcessing = (
 
       // Round 2: Inspection and Polish Pass
       if (geminiResponse.html) {
-        setState(prev => ({
-          ...prev,
-          progress: Math.max(prev.progress, 75),
-          statusMessage: `${pageLabel}: Inspecting & polishing LaTeX delimiters...`,
-          actualModelUsed: batchResponses.actualModelUsed
-        }));
-
         try {
           geminiResponse.html = await inspectAndPolishPageHtml(geminiResponse.html, model);
           onApiCall?.();
@@ -428,7 +333,6 @@ export const useDocumentProcessing = (
       setState(prev => ({
         ...prev,
         progress: Math.max(prev.progress, 85),
-        statusMessage: `Processing mathematical figures for ${pageLabel}...`,
         actualModelUsed: batchResponses.actualModelUsed
       }));
 

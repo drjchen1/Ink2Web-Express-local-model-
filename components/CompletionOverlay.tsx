@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle2, Server, ArrowRight, X } from 'lucide-react';
 
 interface CompletionOverlayProps {
@@ -31,18 +30,14 @@ const CompletionOverlay: React.FC<CompletionOverlayProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/45 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40"
       role="dialog"
       aria-modal="true"
       aria-label="Conversion completed"
       onClick={onDismiss}
     >
-      <motion.div 
-        initial={{ scale: 0.94, opacity: 0, y: 8 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-        className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-zinc-200 shadow-2xl flex flex-col items-center text-center relative overflow-hidden"
+      <div 
+        className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-zinc-200 shadow-xl flex flex-col items-center text-center relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Dismiss X button */}
@@ -97,7 +92,7 @@ const CompletionOverlay: React.FC<CompletionOverlayProps> = ({
         <p className="text-[11px] text-zinc-400 mt-3 font-medium">
           Click anywhere or press Enter or Esc to dismiss
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 };

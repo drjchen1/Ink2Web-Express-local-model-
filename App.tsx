@@ -106,7 +106,6 @@ const App: React.FC = () => {
       {state.isProcessing && (
         <ProcessingOverlay 
           progress={state.progress} 
-          currentImages={state.currentProcessingImages}
           selectedModel={state.selectedModel}
           actualModelUsed={state.actualModelUsed}
           statusMessage={state.statusMessage}
